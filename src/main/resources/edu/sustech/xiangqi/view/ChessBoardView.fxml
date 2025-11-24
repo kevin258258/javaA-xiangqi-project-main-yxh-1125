@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 确保导入了 javafx.fxml -->
+<?import javafx.scene.layout.AnchorPane?>
+
+<!-- 在你的根元素中添加 fx:controller 属性 -->
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.sustech.xiangqi.controller.ChessBoardController">
+    <!-- 这里是你的按钮、棋盘等界面元素 -->
+
+</AnchorPane>
