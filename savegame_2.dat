@@ -1,10 +1,0 @@
-¨Ì sr )edu.sustech.xiangqi.model.ChessBoardModel^»œÈD¯‹ Z 
-isGameOverZ 	isRedTurnL 
-moveHistoryt Ljava/util/Stack;L piecest Ljava/util/List;L winnert Ljava/lang/String;xp  sr java.util.Stack?¬ª	?  xr java.util.VectorŸó}[Ä;? I capacityIncrementI elementCount[ 
-elementDatat [Ljava/lang/Object;xp       ur [Ljava.lang.Object;êŒX?s)l  xp   
-sr %edu.sustech.xiangqi.model.MoveCommand        I endColI endRowI startColI startRowL 
-capturedPiecet )Ledu/sustech/xiangqi/model/AbstractPiece;L 
-movedPieceq ~ xp            psr &edu.sustech.xiangqi.model.SoldierPiece@?R≈√J  xr 'edu.sustech.xiangqi.model.AbstractPiece        I colZ isRedI ieceß~?"kl   xq ~         t ÁÇÆsq ~ 
-             psr &edu.sustech.xiangqi.model.GeneralPiece¯Çâ»˜lΩô  xq ~        t Â∞Üsq ~ 
-            	psq ~       t Â∏Öpppppxsr java.util.ArrayListxÅ“ô«a? I sizexp   w   sr &edu.sustech.xiangqi.model.ChariotPiece?é_B?B  xq ~          t ËΩ¶sq ~         q ~ sr 'edu.sustech.xiangqi.model.ElephantPieceeDßì®4j  xq ~         t Ë±°sr &edu.sustech.xiangqi.model.AdvisorPieceWw◊Tı¿
-  xq ~         t Â£´q ~ sq ~ ,        q ~ .sq ~ )        q ~ +sq ~ %        q ~ 'sq ~        q ~ sq ~         q ~ sq ~         q ~ sq ~        q ~ sq ~        q ~ q ~ sq ~        q ~ sq ~        q ~ sq ~       q ~ q ~ sq ~       q ~ sq ~       q ~ sq ~        q ~ q ~ sq ~ %       	q ~ 'sq ~       	q ~ sq ~ )      	t Áõ∏sq ~ ,      	t ‰ªïq ~ !sq ~ ,      	q ~ Bsq ~ )      	q ~ @sq ~        	q ~ sq ~ %      	q ~ 'xp
