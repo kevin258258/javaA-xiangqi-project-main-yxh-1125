@@ -512,7 +512,7 @@ public class boardController {
      * 【核心】启动 AI 思考线程
      * 这个方法应该在人类回合结束（动画播完）后调用
      */
-    private void startAITurn() {
+    public void startAITurn() {
         System.out.println("AI (黑方) 正在思考...");
 
         // 1. 上锁：禁止人类操作

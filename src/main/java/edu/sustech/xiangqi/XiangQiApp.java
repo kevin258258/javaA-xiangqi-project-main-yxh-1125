@@ -535,7 +535,17 @@ public class XiangQiApp extends GameApplication {
         initStandardGameUI();
 
         turnIndicator.update(isRedFirst, false);
-        getDialogService().showMessageBox("排局开始！\n由 " + (isRedFirst ? "红方" : "黑方") + " 先行。");
+        getDialogService().showMessageBox("排局开始！\n由 " + (isRedFirst ? "红方" : "黑方") + " 先行。", () -> {
+
+            // 如果设定是黑方先走 (isRedFirst 为 false)
+            if (!isRedFirst) {
+                // 立即触发 AI
+                // startAITurn 内部会自动执行 getInputHandler().setLocked(true)，所以这里不用手动锁
+                if (boardController != null) {
+                    boardController.startAITurn();
+                }
+            }
+        });
     }
 
     // --- 【新增】深拷贝工具方法 ---
