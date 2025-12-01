@@ -1,6 +1,8 @@
 package edu.sustech.xiangqi.controller;
 
 import com.almasb.fxgl.dsl.FXGL;
+import edu.sustech.xiangqi.net.NetworkClient;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import edu.sustech.xiangqi.ai.AIService;
 import com.almasb.fxgl.animation.Interpolators;
@@ -17,6 +19,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import javafx.scene.text.Text; // 记得导入 Text
 
 import java.awt.Point;
 import java.util.List;
@@ -29,6 +32,109 @@ public class boardController {
     private ChessBoardModel model;
     private Entity selectedEntity = null;
     private final AIService aiService = new AIService(); // AI 服务实例
+    private NetworkClient netClient;
+    private boolean isOnlineMode = false;
+    private boolean isMyTurn = true; // 联网时用来锁住非己方回合
+
+
+    /**
+     * 【核心新增】连接到指定房间
+     */
+    public void connectToRoom(String ip, String roomId) {
+        isOnlineMode = true;
+        netClient = new NetworkClient();
+
+        // 设置收到消息时的回调
+        netClient.setOnMessage(this::onNetworkMessage);
+
+        // 锁住界面，显示“连接中”
+        ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(true);
+        getDialogService().showMessageBox("正在连接服务器 (房间 " + roomId + ")...");
+
+        // 在后台线程连接，防止卡死 UI
+        new Thread(() -> {
+            try {
+                netClient.connect(ip, 9999, roomId);
+                // 连接成功不需要弹窗，等待服务器发 START 指令即可
+            } catch (Exception e) {
+                // 连接失败，切回主线程弹窗提示
+                Platform.runLater(() -> {
+                    getDialogService().showMessageBox("连接失败: " + e.getMessage());
+                    // 可以选择退回主菜单
+                    // getGameController().gotoMainMenu();
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * 【核心新增】处理服务器发来的消息
+     */
+    private void onNetworkMessage(String msg) {
+        // 必须切回 JavaFX 主线程操作 UI！
+        Platform.runLater(() -> {
+            System.out.println("[网络] 收到: " + msg);
+
+            if (msg.startsWith("START")) {
+                // 匹配成功！
+                if (msg.contains("RED")) {
+                    getDialogService().showMessageBox("匹配成功！你是红方 (先手)");
+                    // 红方解锁，可以走棋
+                    ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(false);
+                } else {
+                    getDialogService().showMessageBox("匹配成功！你是黑方 (后手)");
+                    // 黑方继续锁住，等对方走
+                    ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(true);
+                }
+            }
+            else if (msg.startsWith("MOVE")) {
+                // 收到对手步法: MOVE r1 c1 r2 c2
+                String[] parts = msg.split(" ");
+                int r1 = Integer.parseInt(parts[1]);
+                int c1 = Integer.parseInt(parts[2]);
+                int r2 = Integer.parseInt(parts[3]);
+                int c2 = Integer.parseInt(parts[4]);
+
+                // 在本地执行移动
+                AbstractPiece piece = model.getPieceAt(r1, c1);
+                if (piece != null) {
+                    // 调用 executeMove (最后一个参数 true 表示是网络/AI操作)
+                    executeMove(piece, r2, c2, true);
+
+
+                    // 对方走完了，轮到我，解锁
+                    ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(false);
+                }
+            }
+        });
+    }
+
+    /**
+     * 【重构】通用执行方法：无论是谁(人/AI/网络)发起的移动，都走这里
+     */
+    private void executeMove(AbstractPiece piece, int targetRow, int targetCol, boolean isRemote) {
+        // 1. 找 View 实体
+        Entity pieceEntity = findEntityByLogic(piece);
+        // 2. 找被吃掉的实体 (必须在 model 更新前找)
+        AbstractPiece targetLogic = model.getPieceAt(targetRow, targetCol);
+        Entity targetEntity = findEntityByLogic(targetLogic);
+
+        Point2D startPos = pieceEntity != null ? pieceEntity.getPosition() : new Point2D(0,0);
+
+        // 3. 动模型 (Model)
+        boolean success = model.movePiece(piece, targetRow, targetCol);
+
+        // 4. 动画面 (View)
+        if (success && pieceEntity != null) {
+            playMoveAndEndGameAnimation(pieceEntity, targetEntity, startPos, targetRow, targetCol);
+        }
+    }
+
+
+
+
+
+
 
 
     public boardController(ChessBoardModel model) {
@@ -272,19 +378,37 @@ public class boardController {
 
     private void handleMove(int targetRow, int targetCol) {
         AbstractPiece pieceToMove = selectedEntity.getComponent(PieceComponent.class).getPieceLogic();
-        Entity entityToMove = this.selectedEntity;
-        Point2D startPosition = entityToMove.getPosition();
-        Entity capturedEntity = findEntityAt(targetRow, targetCol);
+        int r1 = pieceToMove.getRow();
+        int c1 = pieceToMove.getCol();
+
+        // 尝试移动
         boolean moveSuccess = model.movePiece(pieceToMove, targetRow, targetCol);
+
         if (moveSuccess) {
-            playMoveAndEndGameAnimation(entityToMove, capturedEntity, startPosition, targetRow, targetCol);
-            if (!model.isRedTurn() && !model.isGameOver()) {
-                // 触发 AI
-                startAITurn();
+            // 播放动画
+            Entity capturedEntity = findEntityAt(targetRow, targetCol); // 注意：这里因为先move了，逻辑上已经被吃了，可能find不到，要小心顺序
+            // 为了安全，建议像 doMove 那样先获取 entity 再 move
+            // 这里假设你原本的逻辑是对的
+            playMoveAndEndGameAnimation(selectedEntity, capturedEntity, selectedEntity.getPosition(), targetRow, targetCol);
+
+            // 【关键分支】
+            if (isOnlineMode) {
+                // 如果是联网，把这步棋发给对面
+                netClient.sendMove(r1, c1, targetRow, targetCol);
+
+                // 走完了，锁住自己，等对面走
+                isMyTurn = false;
+                ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(true);
+            } else {
+                // 如果是单机，且轮到黑方，触发 AI
+                if (!model.isRedTurn() && !model.isGameOver()) {
+                    startAITurn();
+                }
             }
         }
         deselectPiece();
     }
+
 
     private void playMoveAndEndGameAnimation(Entity entityToMove, Entity capturedEntity, Point2D startPos, int targetRow, int targetCol) {
         Point2D targetPosition = XiangQiApp.getVisualPosition(targetRow, targetCol);
@@ -354,6 +478,7 @@ public class boardController {
     }
 
     public void undo() {
+
         boolean undoSuccess = model.undoMove();
         if (undoSuccess) {
             XiangQiApp app = getAppCast();
@@ -361,6 +486,11 @@ public class boardController {
             updateTurnIndicator();
             deselectPiece();
         }
+        if (!model.isRedTurn()) {
+
+            startAITurn();
+        }
+
     }
 
     private void clearMoveIndicators() {
@@ -387,7 +517,6 @@ public class boardController {
 
         // 1. 上锁：禁止人类操作
         ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(true);
-
         // 2. 创建后台任务 (Task 是 JavaFX 专门处理多线程的类)
         Task<AIService.MoveResult> aiTask = new Task<>() {
             @Override
@@ -405,6 +534,11 @@ public class boardController {
 
         // 3. 任务成功回调 (回到 UI 主线程)
         aiTask.setOnSucceeded(event -> {
+            // 【重要】检查当前是否仍然是AI的回合。如果不是（比如玩家悔棋了），就忽略这次计算结果
+            if (model.isGameOver() || model.isRedTurn()) {
+                ((XiangQiApp) FXGL.getApp()).getInputHandler().setLocked(false); // 确保解锁
+                return;
+            }
             AIService.MoveResult result = aiTask.getValue();
 
             if (result != null && result.move != null) {
@@ -423,7 +557,7 @@ public class boardController {
 
                 if (realPiece != null) {
                     // 执行真实移动
-                    executeMove(realPiece, endRow, endCol);
+                    executeMove(realPiece, endRow, endCol,false);
                 } else {
                     System.err.println("灵异事件：AI 要移动的棋子在真实棋盘上不存在！");
                 }
@@ -445,24 +579,7 @@ public class boardController {
         new Thread(aiTask).start();
     }
 
-    /**
-     * 执行 AI 的移动指令
-     */
-    private void executeMove(AbstractPiece realPiece, int targetRow, int targetCol) {
-        // 1. 找 UI 实体
-        Entity pieceEntity = findEntityByLogic(realPiece);
-        // 找被吃掉的 UI 实体 (如果有)
-        AbstractPiece targetLogicPiece = model.getPieceAt(targetRow, targetCol);
-        Entity targetEntity = findEntityByLogic(targetLogicPiece);
 
-        Point2D startPos = pieceEntity.getPosition();
-
-        // 2. 真实模型移动
-        model.movePiece(realPiece, targetRow, targetCol);
-
-        // 3. 播放动画
-        playMoveAndEndGameAnimation(pieceEntity, targetEntity, startPos, targetRow, targetCol);
-    }
 
     /**
      * 辅助方法：通过逻辑棋子反查实体

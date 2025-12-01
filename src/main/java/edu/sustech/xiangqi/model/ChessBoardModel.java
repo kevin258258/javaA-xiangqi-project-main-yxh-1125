@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Stack; // 需要 import
+
+import com.almasb.fxgl.dsl.FXGL;
+import edu.sustech.xiangqi.XiangQiApp;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -183,7 +186,6 @@ public class ChessBoardModel implements Serializable{
             this.isGameOver = true;
             this.winner = isRedTurn ? "黑方" : "红方";
 
-            System.out.println("游戏结束!。胜利者是: " + this.winner);
         }
         else if (isGeneraInCheck(isRedTurn)) {
             // 顺便处理“将军”的提示
@@ -204,6 +206,7 @@ public class ChessBoardModel implements Serializable{
         if (moveHistory.isEmpty()) {
             return false;
         }
+
 
         // 1. 从历史记录中弹出上一步的命令
         MoveCommand lastMove = moveHistory.pop();
@@ -228,6 +231,7 @@ public class ChessBoardModel implements Serializable{
             isGameOver = false;
             winner = null;
         }
+
 
         updateHistoryStrings();
 

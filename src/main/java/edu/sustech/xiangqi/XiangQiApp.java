@@ -34,6 +34,8 @@ import java.util.List;
 import edu.sustech.xiangqi.manager.UserManager;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.util.Duration;
+
 import static com.almasb.fxgl.dsl.FXGL.*;
 
 public class XiangQiApp extends GameApplication {
@@ -91,8 +93,14 @@ public class XiangQiApp extends GameApplication {
     private boolean isGuestMode = true;
     //储存地址
     private static final String SAVE_DIR = "saves/";
+    //联网模式标记
+    private boolean isOnlineLaunch = false;
+
+
 
     // --- Getters & Setters ---
+    public void setOnlineLaunch(boolean isOnline) { this.isOnlineLaunch = isOnline; }
+    public boolean isOnlineLaunch() { return isOnlineLaunch; }
     public Text getGameOverBanner() { return gameOverBanner; }
     public Rectangle getGameOverDimmingRect() { return gameOverDimmingRect; }
     public void setCustomMode(boolean customMode) { this.isCustomMode = customMode; }
@@ -189,6 +197,12 @@ public class XiangQiApp extends GameApplication {
             selectedPieceType = null;
         }
         // 3. 全新游戏
+        else if (isOnlineLaunch) {
+            this.model = new ChessBoardModel(); // 全新开局
+            isCustomMode = false;
+            isLoadedGame = false;
+            isSettingUp = false;
+        }
         else {
             this.model = new ChessBoardModel();
 
@@ -215,6 +229,7 @@ public class XiangQiApp extends GameApplication {
         // 而是等到 initSetupUI 显示后，通过 spawnPiecesFromModel 手动刷新或者用户点击刷新
         // 但为了让用户看到之前的残局，我们在这里还是生成一次比较好
         // 修正：排局设置阶段也需要显示棋子
+
         spawnPiecesFromModel();
     }
 
@@ -228,6 +243,32 @@ public class XiangQiApp extends GameApplication {
             spawn(entityID, new SpawnData(visualPos).put("pieceLogic", pieceLogic));
         }
     }
+
+    public void startOnlineConnection(String ip, String roomId, Text statusText) {
+        // 1. 设置标记：告诉 initGame 这次是联网启动
+        this.isOnlineLaunch = true;
+        this.setCustomMode(false);
+        this.setLoadedGame(false);
+        // this.isSettingUp = false; // 如果有这个变量也设为 false
+
+        // 2. 【修正】启动游戏场景
+        // 在 App 类里，要用 getGameController() 来控制流程
+        getGameController().startNewGame();
+
+        // 3. 延迟一瞬间，等 initGame 跑完，boardController 创建好了，再执行 Socket 连接
+        runOnce(() -> {
+            if (boardController != null) {
+                // 调用控制器的连接方法
+                // 注意：这里我们不需要传 statusText 了，因为场景切走了，原来的文本框看不到了
+                // 连接结果会通过 getDialogService().showMessageBox 弹窗提示
+                boardController.connectToRoom(ip, roomId);
+            }
+        }, Duration.seconds(0.1));
+    }
+
+
+
+
 
     // --- UI 初始化 ---
     @Override
@@ -249,8 +290,11 @@ public class XiangQiApp extends GameApplication {
         gameOverBanner.setVisible(false);
         addUINode(gameOverDimmingRect);
         addUINode(gameOverBanner);
-
-        if (isCustomMode) {
+        if (isOnlineLaunch) {
+            // 【联网 UI】只显示投降和状态
+            initOnlineGameUI();
+        }
+        else if (isCustomMode) {
             // 如果是排局模式（无论是刚进还是玩了一半），根据 isSettingUp 决定显示哪个 UI
             if (isSettingUp) {
                 initSetupUI();
@@ -260,6 +304,28 @@ public class XiangQiApp extends GameApplication {
         } else {
             initStandardGameUI();
         }
+    }
+    // 【新增】简化的联网 UI
+    private void initOnlineGameUI() {
+        double uiX = BOARD_START_X + BOARD_WIDTH + UI_GAP - 20;
+
+        // 只有投降有用，悔棋需要写网络协议(UNDO_REQUEST)，如果没写就别放按钮了
+        var btnSurrender = new PixelatedButton("投降 / 退出", "Button1", () -> {
+            if (boardController != null) {
+                // 这里应该发一个 SURRENDER 消息给对面，然后由 executeMove 处理
+                // 或者直接强退
+                getGameController().gotoMainMenu();
+            }
+        });
+        // 也可以加个简单的聊天框？(高级功能)
+
+        standardGameUI = new VBox(10, btnSurrender);
+        addUINode(standardGameUI, uiX, 50);
+
+        turnIndicator = new TurnIndicator();
+        // 初始状态可能需要根据 startOnlineGame 的回调来更新
+        turnIndicator.update(true, false);
+        addUINode(turnIndicator, uiX, 750);
     }
 
     private void initStandardGameUI() {
