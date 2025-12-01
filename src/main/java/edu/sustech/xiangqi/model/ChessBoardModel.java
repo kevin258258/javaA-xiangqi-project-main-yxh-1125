@@ -154,7 +154,10 @@ public class ChessBoardModel implements Serializable{
                      this.winner = isRedTurn ? "红方" : "黑方";
                  pieces.remove(getPieceAt(newRow, newCol));
                  piece.moveTo(newRow, newCol);
+                 isRedTurn = !isRedTurn;
+                 moveHistory.push(command);
                  return true;
+
              }
              pieces.remove(getPieceAt(newRow, newCol));
          }
