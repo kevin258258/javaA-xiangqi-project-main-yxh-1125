@@ -1,6 +1,7 @@
 package edu.sustech.xiangqi.controller;
 
 import com.almasb.fxgl.dsl.FXGL;
+import com.almasb.fxgl.time.TimerAction;
 import edu.sustech.xiangqi.net.NetworkClient;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -35,6 +36,8 @@ public class boardController {
     private NetworkClient netClient;
     private boolean isOnlineMode = false;
     private boolean isMyTurn = true; // 联网时用来锁住非己方回合
+    private TimerAction aiAutoStartTimer = null;
+
 
 
     /**
@@ -478,21 +481,48 @@ public class boardController {
     }
 
     public void undo() {
+        // 1. 如果是联网模式，走联网逻辑 (保持你原有的逻辑或暂时留空)
+        if (isOnlineMode) {
+            if (netClient != null) netClient.sendMove(-1, -1, -1, -1); // 发送悔棋请求的伪代码
+            return;
+        }
 
-        boolean undoSuccess = model.undoMove();
-        if (undoSuccess) {
-            XiangQiApp app = getAppCast();
+        // 2. 如果 AI 正在思考 (Task 运行中)，禁止悔棋，防止数据冲突
+
+
+        // 3. 【关键】检测连续点击
+        // 如果有一个“等待 1s 后启动 AI”的任务正在倒计时，说明玩家想连悔两步。
+        // 此时取消那个任务，继续执行悔棋！
+        if (aiAutoStartTimer != null && !aiAutoStartTimer.isExpired()) {
+            aiAutoStartTimer.expire(); // 取消任务
+            aiAutoStartTimer = null;
+        }
+
+        // 4. 执行模型悔棋
+        boolean success = model.undoMove();
+
+        if (success) {
+            XiangQiApp app = (XiangQiApp) FXGL.getApp();
             app.spawnPiecesFromModel();
             updateTurnIndicator();
             deselectPiece();
-        }
-        if (!model.isRedTurn()) {
 
-            startAITurn();
-        }
+            if (model.isRedTurn()) {
 
+                app.getInputHandler().setLocked(false);
+
+            } else {
+
+                aiAutoStartTimer = getGameTimer().runOnceAfter(() -> {
+
+                    if (!model.isRedTurn() && !model.isGameOver()) {
+                        startAITurn(); // 1秒到了
+                    }
+                    aiAutoStartTimer = null; // 任务结束，清空引用
+                }, Duration.seconds(1.0)); // 延迟 1 秒
+            }
+        }
     }
-
     private void clearMoveIndicators() {
         getGameWorld().getEntitiesByType(EntityType.MOVE_INDICATOR).forEach(Entity::removeFromWorld);
     }
