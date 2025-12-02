@@ -170,29 +170,29 @@ public class ChessBoardModel implements Serializable{
         }
         isRedTurn = !isRedTurn;
 
-        // 先检查有没有把自己害死
-        if (isCheckMate(!isRedTurn)) {
-            this.isGameOver = true;
-            this.winner = !isRedTurn ? "黑方" : "红方";
+       if(!aiMode) { // 先检查有没有把自己害死
+           if (isCheckMate(!isRedTurn)) {
+               this.isGameOver = true;
+               this.winner = !isRedTurn ? "黑方" : "红方";
 
-        }
-        else if (isGeneraInCheck(isRedTurn)) {
-            // 顺便处理“将军”的提示
-        }
+           } else if (isGeneraInCheck(isRedTurn)) {
+               // 顺便处理“将军”的提示
+           }
 
 
-        //在检查另一方
-        if (isCheckMate(isRedTurn)) {
-            this.isGameOver = true;
-            this.winner = isRedTurn ? "黑方" : "红方";
+           //在检查另一方
+           if (isCheckMate(isRedTurn)) {
+               this.isGameOver = true;
+               this.winner = isRedTurn ? "黑方" : "红方";
 
-        }
-        else if (isGeneraInCheck(isRedTurn)) {
-            // 顺便处理“将军”的提示
-        }
+           } else if (isGeneraInCheck(isRedTurn)) {
+               // 顺便处理“将军”的提示
+           }
+       }
         moveHistory.push(command);
-
+        if (!aiMode) {
             updateHistoryStrings();
+        }
 
 
         return true;
