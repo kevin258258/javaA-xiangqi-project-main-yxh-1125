@@ -667,5 +667,23 @@ public class XiangQiApp extends GameApplication {
         input.addAction(clickAction, MouseButton.PRIMARY);
     }
 
-    public static void main(String[] args) { launch(args); }
+    public static void main(String[] args) {    // 1. 在新线程中启动服务器，并在这里进行 try-catch
+        new Thread(() -> {
+            try {
+                // 尝试启动服务器
+                edu.sustech.xiangqi.server.XiangQiServer.main(null);
+
+            } catch (java.net.BindException e) {
+                // 【捕获端口占用】
+                // 如果抛出这个异常，说明已经有一个游戏窗口开着了（Server已在运行）
+                System.out.println(">>> 检测到端口被占用，跳过服务器启动 (本机将作为纯客户端运行) <<<");
+            } catch (Exception e) {
+                // 【捕获其他异常】
+                System.err.println(">>> 服务器启动出现未知错误: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+
+        // 2. 无论服务器启动成功还是失败，都正常启动游戏界面
+        launch(args); }
 }
