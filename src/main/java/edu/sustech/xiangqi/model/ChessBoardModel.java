@@ -191,7 +191,7 @@ public class ChessBoardModel implements Serializable{
            //在检查另一方
            if (isCheckMate(isRedTurn)) {
                this.isGameOver = true;
-               this.winner = !isRedTurn ? "黑方" : "红方"; // 上一步走棋的人赢
+               this.winner = isRedTurn ? "黑方" : "红方"; // 上一步走棋的人赢
 //               System.out.println("绝杀！胜利者: " + this.winner);
            }
            // 2. 【新增】检查是否困毙 (Stalemate)
