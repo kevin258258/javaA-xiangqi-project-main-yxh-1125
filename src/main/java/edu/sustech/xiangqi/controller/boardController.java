@@ -16,6 +16,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import javafx.scene.paint.Color;
@@ -251,10 +252,13 @@ public class boardController {
         }
         if (model.undoMove()) {
             refreshBoardView();
+            getApp().getInputHandler().setLocked(false);
             // 悔棋后如果是 AI 回合，延迟触发 AI
             if (!model.isRedTurn() && !model.isGameOver()) {
                 if(getApp().isAIEnabled()) {
+                    getApp().getInputHandler().setLocked(true);
                     aiAutoStartTimer = runOnce(() -> startAITurn(getApp().getAIDifficulty()), Duration.seconds(1.0));
+
                 }
             }
         }
@@ -573,9 +577,42 @@ public class boardController {
 
         runOnce(() -> {
             if (t != null) t.removeFromWorld();
+
             if (model.isGameOver()) showGameOverBanner();
+            else {
+
+                if (model.isGeneraInCheck(model.isRedTurn())) {
+                    showCheckMessage();
+
+                }
+            }
             updateTurnIndicator();
         }, Duration.seconds(0.25));
+    }
+
+    private void showCheckMessage() {
+
+        Font myFont = getAssetLoader().loadFont("HYPixel11pxU-2.ttf").newFont(80);
+
+        Text checkText = new Text("将军！");
+        checkText.setFont(myFont);
+        checkText.setFill(Color.BLACK);
+
+        checkText.setEffect(new javafx.scene.effect.DropShadow(3, Color.BLACK));
+
+        checkText.setTranslateX(getAppWidth() / 2.0 - checkText.getLayoutBounds().getWidth() / 2.0);
+        checkText.setTranslateY(getAppHeight() / 2.0 - 120);
+
+        getGameScene().addUINode(checkText);
+
+        animationBuilder()
+                .duration(Duration.seconds(2.0))
+                .fadeIn(checkText)
+                .fadeOut(checkText)
+                .buildAndPlay();
+
+        // 销毁
+        runOnce(() -> getGameScene().removeUINode(checkText), Duration.seconds(2.0));
     }
 
     private void showGameOverBanner() {
