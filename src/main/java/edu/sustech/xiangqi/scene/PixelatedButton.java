@@ -66,12 +66,10 @@ public class PixelatedButton extends StackPane {
         // 6. 交互事件
         Image finalPressImage = pressImage;
 
-        setOnMouseEntered(e -> FXGL.play("按钮音效1.mp3")); // 鼠标悬停音效
 
         setOnMousePressed(e -> {
             background.setImage(finalPressImage);
-            FXGL.play("按钮音效1.mp3");
-
+            FXGL.play("button.wav");
             // 按下时文字稍微下沉一点点，增加立体感
             text.setTranslateY(2);
         });
