@@ -399,7 +399,7 @@ public class XiangQiApp extends GameApplication {
             setupRedFirst = !setupRedFirst;
             if(setupRedFirst) { btnToggleTurn.setText("先手: 红方"); btnToggleTurn.setTextColor(Color.RED); }
             else { btnToggleTurn.setText("先手: 黑方"); btnToggleTurn.setTextColor(Color.BLACK); }
-            FXGL.play("按钮音效1.mp3");
+            FXGL.play("button.mp3");
         });
 
         Label turnLabel = new Label("先手选择"); turnLabel.setFont(gameFont); turnLabel.setTextFill(Color.WHITE);
@@ -452,7 +452,7 @@ public class XiangQiApp extends GameApplication {
             Button btn = new Button("", img); btn.setStyle("-fx-background-color: transparent;");
             btn.setOnAction(e->{
                 resetPaletteStyles(); btn.setStyle("-fx-background-color: rgba(255,255,0,0.3);");
-                selectedPieceType=type; selectedPieceIsRed=red; FXGL.play("按钮音效1.mp3");
+                selectedPieceType=type; selectedPieceIsRed=red; FXGL.play("button.mp3");
             });
             box.getChildren().add(btn);
         }

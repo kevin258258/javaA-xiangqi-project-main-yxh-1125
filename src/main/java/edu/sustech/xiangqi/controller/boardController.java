@@ -505,7 +505,7 @@ public class boardController {
         String type = app.getSelectedPieceType();
 
         if ("Eraser".equals(type)) {
-            if (existing != null) { model.getPieces().remove(existing); app.spawnPiecesFromModel(); FXGL.play("按钮音效1.mp3"); }
+            if (existing != null) { model.getPieces().remove(existing); app.spawnPiecesFromModel(); FXGL.play("button.mp3"); }
             return;
         }
 
@@ -534,7 +534,7 @@ public class boardController {
 
             model.addPiece(newPiece);
             app.spawnPiecesFromModel();
-            FXGL.play("按钮音效1.mp3");
+            FXGL.play("button.mp3");
         } else if (existing != null) {
             model.getPieces().remove(existing);
             app.spawnPiecesFromModel();
