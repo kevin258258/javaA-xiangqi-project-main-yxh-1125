@@ -71,6 +71,8 @@ public class MainMenuScene extends FXGLMenu {
 
     public MainMenuScene() {
         super(MenuType.MAIN_MENU);
+        FXGL.loopBGM("Whisper Records - 古の森.wav");
+        FXGL.getSettings().setGlobalMusicVolume(0.5); // 50% 音量
 
         // 1. 背景：
         Rectangle bg = new Rectangle(getAppWidth(), getAppHeight());

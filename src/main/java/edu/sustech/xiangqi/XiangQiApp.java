@@ -175,6 +175,7 @@ public class XiangQiApp extends GameApplication {
             isBoardFlipped = false;
         }
 
+
         if (isLoadedGame) {
             // 第一次加载
             isLoadedGame = false;
@@ -219,6 +220,10 @@ public class XiangQiApp extends GameApplication {
         this.inputHandler = new InputHandler(this.boardController);
 
         spawnPiecesFromModel();
+
+
+
+
     }
 
     public void spawnPiecesFromModel() {
