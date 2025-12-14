@@ -151,6 +151,10 @@ public class XiangQiApp extends GameApplication {
         settings.setVersion("1.0");
         settings.setWidth(APP_WIDTH);
         settings.setHeight(APP_HEIGHT);
+
+        settings.setManualResizeEnabled(true);
+        settings.setPreserveResizeRatio(true);
+
         settings.setMainMenuEnabled(true);
         settings.setSceneFactory(new SceneFactory() {
             @Override public FXGLMenu newMainMenu() { return new MainMenuScene(); }
@@ -243,6 +247,7 @@ public class XiangQiApp extends GameApplication {
 
     @Override
     protected void initUI() {
+        getGameScene().getRoot().setStyle("-fx-background-color: #3a2e24;");
         // 清理 UI
         if (leftGameUI != null) removeUINode(leftGameUI);
 
@@ -269,6 +274,7 @@ public class XiangQiApp extends GameApplication {
         } else {
             initStandardGameUI();
         }
+
     }
 
     //标准模式 UI (包含左侧 AI/棋谱)
@@ -323,8 +329,8 @@ public class XiangQiApp extends GameApplication {
         addUINode(turnIndicator, rightX, 750);
 
         // 3. 棋谱面板初始化 (默认隐藏)
-        historyPanel = new HistoryPanel(220, 400);
-        historyPanel.setTranslateX(20);
+        historyPanel = new HistoryPanel(220, 600);
+        historyPanel.setTranslateX(17);
         historyPanel.setTranslateY(APP_HEIGHT / 2.0 - 200);
         historyPanel.setVisible(false);
         addUINode(historyPanel);

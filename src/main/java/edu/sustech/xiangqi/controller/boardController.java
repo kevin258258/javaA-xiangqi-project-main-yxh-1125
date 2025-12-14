@@ -184,6 +184,9 @@ public class boardController {
 
     private void doSwapAndRestart() {
         amIRed = !amIRed;
+        if (isOnlineMode) {
+            XiangQiApp.isBoardFlipped = !amIRed;
+        }
         doRestart();
         String role = amIRed ? "红方 (先手)" : "黑方 (后手)";
         getDialogService().showMessageBox("身份已交换，现在你是：" + role);
@@ -375,13 +378,24 @@ public class boardController {
 
     public void requestAIHint() {
         if (model.isGameOver()) return;
-        getDialogService().showMessageBox("AI正在思考提示...");
+//        getDialogService().showMessageBox("AI正在思考提示...");
 
         Task<AIService.MoveResult> hintTask = new Task<>() {
             @Override
             protected AIService.MoveResult call() throws Exception {
                 // 请求 AI 计算一步最佳走法
-                return aiService.search(model, 4, model.isRedTurn());
+                updateProgress(0, 1);
+                Thread.sleep(100);
+                updateProgress(0.3, 1);
+                Thread.sleep(100);
+                updateProgress(0.6, 1);
+                Thread.sleep(100);
+                updateProgress(0.9, 1);
+                AIService.MoveResult result = aiService.search(model, 4, model.isRedTurn());
+                updateProgress(0.95, 1);
+                Thread.sleep(500);
+                updateProgress(1, 1);
+                return result;
             }
         };
 
@@ -398,7 +412,9 @@ public class boardController {
                 showGhostPieceHint(pieceToMove, r2, c2);
             }
         });
-
+        getDialogService().showProgressBox("AI 正在思考最佳走法...",
+                hintTask.progressProperty(),
+                () -> {System.out.println("弹窗关闭");});
         // 启动后台线程
         new Thread(hintTask).start();
     }

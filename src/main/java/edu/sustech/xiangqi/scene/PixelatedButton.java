@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
-
+import com.almasb.fxgl.audio.Sound;
 /**
  * 修改说明：
  * 1. 继承 StackPane 而不是 Pane，这样可以直接实现内容自动居中。
@@ -17,6 +17,7 @@ public class PixelatedButton extends StackPane {
     private ImageView background;
     private Text text;
     private Runnable action;
+    private static Sound clickSound = null;
 
     public PixelatedButton(String label, String imageName, Runnable action) {
         this.action = action;
@@ -30,6 +31,10 @@ public class PixelatedButton extends StackPane {
         } catch (Exception e) {
             // 如果没有按下效果图，就用原图，防止报错
             pressImage = normalImage;
+        }
+
+        if (clickSound == null) {
+                clickSound = FXGL.getAssetLoader().loadSound("按钮音效1.mp3");
         }
 
         // 2. 初始化背景图
@@ -66,12 +71,13 @@ public class PixelatedButton extends StackPane {
         // 6. 交互事件
         Image finalPressImage = pressImage;
 
-        setOnMouseEntered(e -> FXGL.play("按钮音效1.mp3")); // 鼠标悬停音效
+//        setOnMouseEntered(e -> FXGL.play("按钮音效1.mp3")); // 鼠标悬停音效
 
         setOnMousePressed(e -> {
             background.setImage(finalPressImage);
-            FXGL.play("按钮音效1.mp3");
-
+            if (clickSound != null) {
+                FXGL.getAudioPlayer().playSound(clickSound);
+            }
             // 按下时文字稍微下沉一点点，增加立体感
             text.setTranslateY(2);
         });
@@ -84,12 +90,15 @@ public class PixelatedButton extends StackPane {
             }
         });
     }
-    // 【新增】动态修改文字内容
+    //修改文字内容
     public void setText(String content) {
         this.text.setText(content);
     }
-
-    // 【新增】动态修改文字颜色
+    //修改字体大小
+    public void setFontSize(double size) {
+            this.text.setFont(FXGL.getAssetLoader().loadFont("HYPixel11pxU-2.ttf").newFont(size));
+    }
+    //修改文字颜色
     public void setTextColor(Color color) {
         this.text.setFill(color);
     }

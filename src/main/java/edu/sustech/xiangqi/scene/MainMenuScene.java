@@ -10,6 +10,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -63,6 +64,10 @@ public class MainMenuScene extends FXGLMenu {
     private List<File> allEndgameFiles = new ArrayList<>();
     private Label pageLabel; // 显示 "第 1 / 3 页"
 
+    private VBox mainMenuBox;   // 主界面
+    private VBox settingsBox;   // 设置界面
+    private VBox creditsBox;    // 制作人界面
+
     // 输入框样式
     private static final String INPUT_STYLE =
             "-fx-background-color: rgba(0,0,0,0.3); -fx-border-color: #665544; -fx-border-width: 0 0 2 0; -fx-text-fill: #f0e6d2; -fx-font-size: 16px; -fx-font-family: 'Monospaced';";
@@ -71,7 +76,9 @@ public class MainMenuScene extends FXGLMenu {
 
     public MainMenuScene() {
         super(MenuType.MAIN_MENU);
-
+        initSettingsMenu();
+        initCreditsMenu();
+        initMainMenuView();
         // 1. 背景：
         Rectangle bg = new Rectangle(getAppWidth(), getAppHeight());
         bg.setFill(new RadialGradient(0, 0, 0.5, 0.5, 1, true, CycleMethod.NO_CYCLE,
@@ -234,6 +241,8 @@ public class MainMenuScene extends FXGLMenu {
     // --- 核心切换逻辑 ---
 
     private void switchView(VBox targetView) {
+        getContentRoot().getChildren().remove(settingsBox);
+        getContentRoot().getChildren().remove(creditsBox);
         contentBox.getChildren().clear();
         if (targetView != null) {
             contentBox.getChildren().add(targetView);
@@ -316,7 +325,7 @@ public class MainMenuScene extends FXGLMenu {
     }
 
     private void initMainMenuView() {
-        double scale = 0.8;
+        double scale = 0.7;
 
         var btnNew = new PixelatedButton("标准对战", "Button1", () -> {
             XiangQiApp app = (XiangQiApp) FXGL.getApp();
@@ -367,6 +376,8 @@ public class MainMenuScene extends FXGLMenu {
             switchView(onlineLobbyView);
         });
         btnNet.setScaleX(scale); btnNet.setScaleY(scale);
+        var btnSettings = new PixelatedButton("设 置", "Button1", () -> switchView(settingsBox));
+        btnSettings.setScaleX(scale); btnSettings.setScaleY(scale);
 
         var btnLogout = new PixelatedButton("注销登录", "Button1", () -> {
             XiangQiApp app = (XiangQiApp) FXGL.getApp();
@@ -376,7 +387,7 @@ public class MainMenuScene extends FXGLMenu {
         });
         btnLogout.setScaleX(scale); btnLogout.setScaleY(scale);
 
-        mainMenuView = new VBox(-18, btnNew, btnCustom, btnChallenge, btnLoad, btnNet, btnLogout);
+        mainMenuView = new VBox(-40, btnNew, btnCustom, btnChallenge, btnLoad, btnNet, btnSettings, btnLogout);
         mainMenuView.setAlignment(Pos.CENTER);
     }
 
@@ -440,17 +451,12 @@ public class MainMenuScene extends FXGLMenu {
         endgameView = new VBox(20, title, endgameGrid, navBox, btnBack);
         endgameView.setAlignment(Pos.CENTER);
 
-        // 【关键修复：位置修正】
-        // 因为主菜单整体布局左移了 150px (layout.setTranslateX(Width/2 - 150))
-        // 而残局界面比较宽，视觉上会显得偏右。
-        // 这里我们给 endgameView 单独做一个反向偏移，把它“拉”回来。
-        // 如果觉得还不够居中，请调整这个 100 的数值。
-//        endgameView.setTranslateX(-100);
+
 
         refreshEndgameList();
     }
 
-    // --- 【新增】数据加载与分页逻辑 ---
+    //数据加载与分页逻辑
 
     private void refreshEndgameList() {
         // 1. 扫描 saves 目录
@@ -628,5 +634,101 @@ public class MainMenuScene extends FXGLMenu {
         PauseTransition delay = new PauseTransition(Duration.seconds(0.5));
         delay.setOnFinished(e -> switchView(mainMenuView));
         delay.play();
+    }
+
+    private void switchMenu(VBox menu) {
+        getContentRoot().getChildren().remove(mainMenuBox);
+        getContentRoot().getChildren().remove(settingsBox);
+        getContentRoot().getChildren().remove(creditsBox);
+        if(menu != null){getContentRoot().getChildren().add(menu);}
+
+        menu.setTranslateX(XiangQiApp.APP_WIDTH / 2.0 - 100);
+        menu.setTranslateY(XiangQiApp.APP_HEIGHT / 2.0 - 200);
+
+    }
+
+    private void initSettingsMenu() {
+        //音量
+        Text volTitle = new Text("音 量");
+        volTitle.setFill(Color.WHITE);
+        volTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        //显示
+        Text volValue = new Text();
+        volValue.setFill(Color.LIGHTGREEN);
+        volValue.setStyle("-fx-font-size: 18px;");
+        // 绑定全局音量
+        volValue.textProperty().bind(
+                Bindings.format("%.0f%%", FXGL.getSettings().globalSoundVolumeProperty().multiply(100))
+        );
+
+        var btnVolDown = new PixelatedButton("-", "Button1", () -> {
+            double v = FXGL.getSettings().getGlobalSoundVolume();
+            FXGL.getSettings().setGlobalSoundVolume(Math.max(v - 0.1, 0));
+
+            FXGL.getSettings().setGlobalMusicVolume(FXGL.getSettings().getGlobalSoundVolume()); // 同步音乐
+        });
+        btnVolDown.setMinWidth(60); btnVolDown.setPrefWidth(60);
+        btnVolDown.setScaleX(0.3);btnVolDown.setScaleY(0.3);
+        btnVolDown.setFontSize(80);
+
+        var btnVolUp = new PixelatedButton("+", "Button1", () -> {
+            double v = FXGL.getSettings().getGlobalSoundVolume();
+            FXGL.getSettings().setGlobalSoundVolume(Math.min(v + 0.1, 1));
+
+            FXGL.getSettings().setGlobalMusicVolume(FXGL.getSettings().getGlobalSoundVolume()); // 同步音乐
+        });
+        btnVolUp.setMinWidth(60); btnVolUp.setPrefWidth(60);
+        btnVolUp.setScaleX(0.3);btnVolUp.setScaleY(0.3);
+        btnVolUp.setFontSize(80);
+
+        VBox volBox = new VBox(5, volTitle, new javafx.scene.layout.HBox(10, btnVolDown, volValue, btnVolUp));
+        ((javafx.scene.layout.HBox)volBox.getChildren().get(1)).setAlignment(Pos.CENTER);
+        volBox.setAlignment(Pos.CENTER);
+
+
+        //屏幕大小
+        var btnFullscreen = new PixelatedButton("切换全屏/窗口", "Button1", () -> {
+            var stage = FXGL.getPrimaryStage();
+            stage.setFullScreen(!stage.isFullScreen());
+        });
+        btnFullscreen.setFontSize(25);
+
+        //制作人
+        var btnCredits = new PixelatedButton("制作人信息", "Button1", () -> switchView(creditsBox));
+
+        //返回
+        var btnBack = new PixelatedButton("返 回", "Button1", () -> switchView(mainMenuView));
+
+        settingsBox = new VBox(20, volBox, btnFullscreen, btnCredits, btnBack);
+        settingsBox.setAlignment(Pos.CENTER);
+    }
+
+    //制作人
+    private void initCreditsMenu() {
+        Text title = new Text("=== 制作团队 ===");
+        title.setFill(Color.GOLD);
+        title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+
+
+        String content =
+                "主程序: 陶飞翔、尹玺骅\n" +
+                        "AI设计: 陶飞翔\n" +
+                        "游戏模式: 尹玺骅\n\n" +
+                        "特别感谢: 陶伊达老师、王大兴老师\n" +
+                        "Sustech CS103.\n" +
+                        "2025/12";
+
+        Text text = new Text(content);
+        text.setFill(Color.WHITE);
+        text.setStyle("-fx-font-size: 18px; -fx-line-spacing: 8px;");
+        text.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+
+        var btnBack = new PixelatedButton("返 回", "Button1", () -> switchView(settingsBox));
+
+        creditsBox = new VBox(20, title, text, btnBack);
+        creditsBox.setAlignment(Pos.CENTER);
+
+        creditsBox.setTranslateY(-50);
     }
 }
