@@ -88,6 +88,7 @@ public class InGameMenuScene extends FXGLMenu {
         btnVolDown.setMinWidth(60); btnVolDown.setPrefWidth(60);
         btnVolDown.setScaleX(0.3);btnVolDown.setScaleY(0.3);
         btnVolDown.setFontSize(80);
+        btnVolDown.setTextY(-20);
 
         var btnVolUp = new PixelatedButton("+", "Button1", () -> {
             double v = FXGL.getSettings().getGlobalSoundVolume();
@@ -98,6 +99,7 @@ public class InGameMenuScene extends FXGLMenu {
         btnVolUp.setMinWidth(60); btnVolUp.setPrefWidth(60);
         btnVolUp.setScaleX(0.3);btnVolUp.setScaleY(0.3);
         btnVolUp.setFontSize(80);
+        btnVolUp.setTextY(-20);
 
         VBox volBox = new VBox(5, volTitle, new javafx.scene.layout.HBox(10, btnVolDown, volValue, btnVolUp));
         ((javafx.scene.layout.HBox)volBox.getChildren().get(1)).setAlignment(Pos.CENTER);

@@ -102,4 +102,8 @@ public class PixelatedButton extends StackPane {
     public void setTextColor(Color color) {
         this.text.setFill(color);
     }
+
+    public void setTextY(double y) {
+        this.text.setTranslateY(y);
+    }
 }
