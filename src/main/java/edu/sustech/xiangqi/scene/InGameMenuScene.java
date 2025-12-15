@@ -86,8 +86,8 @@ public class InGameMenuScene extends FXGLMenu {
 
             FXGL.getSettings().setGlobalMusicVolume(FXGL.getSettings().getGlobalSoundVolume()); // 同步音乐
         });
-        btnVolDown.setMinWidth(60); btnVolDown.setPrefWidth(60);
-        btnVolDown.setScaleX(0.3);btnVolDown.setScaleY(0.3);
+        btnVolDown.setMinWidth(80); btnVolDown.setPrefWidth(80);
+        btnVolDown.setScaleX(0.4);btnVolDown.setScaleY(0.4);
         btnVolDown.setFontSize(80);
         btnVolDown.setTextY(-20);
 
@@ -97,15 +97,26 @@ public class InGameMenuScene extends FXGLMenu {
 
             FXGL.getSettings().setGlobalMusicVolume(FXGL.getSettings().getGlobalSoundVolume()); // 同步音乐
         });
-        btnVolUp.setMinWidth(60); btnVolUp.setPrefWidth(60);
-        btnVolUp.setScaleX(0.3);btnVolUp.setScaleY(0.3);
-        btnVolUp.setFontSize(80);
+        btnVolUp.setMinWidth(80); btnVolUp.setPrefWidth(80);
+        btnVolUp.setScaleX(0.4);btnVolUp.setScaleY(0.4);
+        btnVolUp.setFontSize(140);
         btnVolUp.setTextY(-20);
 
         VBox volBox = new VBox(5, volTitle, new javafx.scene.layout.HBox(10, btnVolDown, volValue, btnVolUp));
         ((javafx.scene.layout.HBox)volBox.getChildren().get(1)).setAlignment(Pos.CENTER);
         volBox.setAlignment(Pos.CENTER);
+        volBox.setScaleX(0.7);volBox.setScaleY(0.7);
+        btnVolUp.setFontSize(80);
 
+        //背景音乐
+        var btnMusic = new PixelatedButton("音乐: " + XiangQiApp.getCurrentMusicName(), "Button1", null);
+        btnMusic.setOnMouseClicked(e -> {
+            XiangQiApp.switchNextMusic();
+            btnMusic.setText("音乐: " + XiangQiApp.getCurrentMusicName());
+            FXGL.play("按钮音效1.mp3");
+        });
+        btnVolUp.setFontSize(25);
+        btnMusic.setScaleX(0.8);btnMusic.setScaleY(0.8);
 
         //屏幕大小
         var btnFullscreen = new PixelatedButton("切换全屏/窗口", "Button1", () -> {
@@ -113,14 +124,17 @@ public class InGameMenuScene extends FXGLMenu {
             stage.setFullScreen(!stage.isFullScreen());
         });
         btnFullscreen.setFontSize(25);
+        btnFullscreen.setScaleX(0.8);btnFullscreen.setScaleY(0.8);
 
         //制作人
         var btnCredits = new PixelatedButton("制作人信息", "Button1", () -> switchMenu(creditsBox));
+        btnCredits.setScaleX(0.8);btnCredits.setScaleY(0.8);
 
         //返回
         var btnBack = new PixelatedButton("返 回", "Button1", () -> switchMenu(mainMenuBox));
+        btnBack.setScaleX(0.8);btnBack.setScaleY(0.8);
 
-        settingsBox = new VBox(20, volBox, btnFullscreen, btnCredits, btnBack);
+        settingsBox = new VBox(-20, volBox, btnMusic, btnFullscreen, btnCredits, btnBack);
         settingsBox.setAlignment(Pos.CENTER);
     }
 

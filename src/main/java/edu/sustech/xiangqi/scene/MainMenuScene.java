@@ -76,7 +76,8 @@ public class MainMenuScene extends FXGLMenu {
 
     public MainMenuScene() {
         super(MenuType.MAIN_MENU);
-        FXGL.play("Whisper Records - 古の森.mp3");
+
+        XiangQiApp.ensureMusicPlaying();
 
         initSettingsMenu();
         initCreditsMenu();
@@ -692,6 +693,17 @@ public class MainMenuScene extends FXGLMenu {
         ((javafx.scene.layout.HBox)volBox.getChildren().get(1)).setAlignment(Pos.CENTER);
         volBox.setAlignment(Pos.CENTER);
 
+        //音乐
+        var btnMusic = new PixelatedButton("音乐: " + XiangQiApp.getCurrentMusicName(), "Button1", () -> {
+            XiangQiApp.switchNextMusic();
+        });
+        btnMusic.setOnMouseClicked(e -> {
+            XiangQiApp.switchNextMusic();
+            btnMusic.setText("音乐: " + XiangQiApp.getCurrentMusicName());
+            FXGL.play("按钮音效1.mp3");
+        });
+        btnMusic.setFontSize(25);
+        btnMusic.setScaleX(0.8);btnMusic.setScaleY(0.8);
 
         //屏幕大小
         var btnFullscreen = new PixelatedButton("切换全屏/窗口", "Button1", () -> {
@@ -699,14 +711,17 @@ public class MainMenuScene extends FXGLMenu {
             stage.setFullScreen(!stage.isFullScreen());
         });
         btnFullscreen.setFontSize(25);
+        btnFullscreen.setScaleX(0.8);btnFullscreen.setScaleY(0.8);
 
         //制作人
         var btnCredits = new PixelatedButton("制作人信息", "Button1", () -> switchView(creditsBox));
+        btnCredits.setScaleX(0.8);btnCredits.setScaleY(0.8);
 
         //返回
         var btnBack = new PixelatedButton("返 回", "Button1", () -> switchView(mainMenuView));
+        btnBack.setScaleX(0.8);btnBack.setScaleY(0.8);
 
-        settingsBox = new VBox(20, volBox, btnFullscreen, btnCredits, btnBack);
+        settingsBox = new VBox(-20, volBox, btnMusic, btnFullscreen, btnCredits, btnBack);
         settingsBox.setAlignment(Pos.CENTER);
     }
 

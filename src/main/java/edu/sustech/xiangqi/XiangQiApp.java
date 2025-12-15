@@ -91,6 +91,25 @@ public class XiangQiApp extends GameApplication {
     // 视角翻转标志
     public static boolean isBoardFlipped = false;
 
+    //音乐列表
+    private static final List<String> MUSIC_LIST = new ArrayList<>();
+    static {
+        // 默认音乐 (根目录)
+        MUSIC_LIST.add("Whisper Records - 古の森.mp3");
+
+        // 可切换的音乐 (background 文件夹)
+        MUSIC_LIST.add("background/Against_the_rising_tide.wav");
+        MUSIC_LIST.add("background/AWAKEN.mp3");
+        MUSIC_LIST.add("background/MYSTIC_LIGHT_GUEST.wav");
+        MUSIC_LIST.add("background/反常光谱.wav");
+        MUSIC_LIST.add("background/巴别塔.wav");
+        MUSIC_LIST.add("background/春弦.mp3");
+        MUSIC_LIST.add("background/未许之地OST.wav");
+        MUSIC_LIST.add("background/浸春芜.wav");
+    }
+    private static int currentMusicIndex = 0;
+    private static boolean isMusicStarted = false;
+
     // --- Getters & Setters ---
     public void setOnlineLaunch(boolean isOnline) { this.isOnlineLaunch = isOnline; }
     public boolean isOnlineLaunch() { return isOnlineLaunch; }
@@ -603,6 +622,32 @@ public class XiangQiApp extends GameApplication {
         else if (aiLevel <= 2) btn.setTextColor(Color.LIGHTGREEN);
         else if (aiLevel == 3) btn.setTextColor(Color.YELLOW);
         else btn.setTextColor(Color.RED);
+    }
+
+    //背景音乐
+    public static String getCurrentMusicName() {
+        String path = MUSIC_LIST.get(currentMusicIndex);
+        int lastSlash = path.lastIndexOf('/');
+        String fileName = (lastSlash == -1) ? path : path.substring(lastSlash + 1);
+        int lastDot = fileName.lastIndexOf('.');
+        return (lastDot == -1) ? fileName : fileName.substring(0, lastDot);
+    }
+
+    public static void switchNextMusic() {
+        currentMusicIndex = (currentMusicIndex + 1) % MUSIC_LIST.size();
+
+        //停止当前所有音乐并播放新的
+        FXGL.getAudioPlayer().stopAllMusic();
+        FXGL.loopBGM(MUSIC_LIST.get(currentMusicIndex));
+
+        isMusicStarted = true;
+    }
+
+    public static void ensureMusicPlaying() {
+        if (!isMusicStarted) {
+            FXGL.loopBGM(MUSIC_LIST.get(currentMusicIndex));
+            isMusicStarted = true;
+        }
     }
 
     public static void main(String[] args) {
