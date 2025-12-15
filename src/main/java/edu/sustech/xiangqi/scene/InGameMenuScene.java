@@ -23,6 +23,7 @@ public class InGameMenuScene extends FXGLMenu {
     public InGameMenuScene() {
         super(MenuType.GAME_MENU);
 
+
         // 1. 创建背景遮罩 (半透明黑色)
         Rectangle shadow = new Rectangle(XiangQiApp.APP_WIDTH, XiangQiApp.APP_HEIGHT, Color.color(0, 0, 0, 0.7));
         getContentRoot().getChildren().add(shadow);
@@ -135,7 +136,7 @@ public class InGameMenuScene extends FXGLMenu {
                         "AI设计: 陶飞翔\n" +
                         "游戏模式: 尹玺骅\n\n" +
                         "特别感谢: 陶伊达老师、王大兴老师\n" +
-                        "Sustech CS103.\n" +
+                        "Sustech CS109.\n" +
                         "2025/12";
 
         Text text = new Text(content);

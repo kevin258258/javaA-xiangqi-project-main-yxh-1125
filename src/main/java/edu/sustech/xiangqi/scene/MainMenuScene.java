@@ -76,6 +76,8 @@ public class MainMenuScene extends FXGLMenu {
 
     public MainMenuScene() {
         super(MenuType.MAIN_MENU);
+        FXGL.play("Whisper Records - 古の森.mp3");
+
         initSettingsMenu();
         initCreditsMenu();
         initMainMenuView();
@@ -280,6 +282,8 @@ public class MainMenuScene extends FXGLMenu {
 
         loginSelectionView = new VBox(15, btnUser, btnGuest, btnExit);
         loginSelectionView.setAlignment(Pos.CENTER);
+
+
     }
 
     private void initUserLoginFormView() {

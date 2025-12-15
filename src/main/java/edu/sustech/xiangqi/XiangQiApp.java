@@ -224,6 +224,7 @@ public class XiangQiApp extends GameApplication {
         this.boardController = new boardController(this.model);
         this.inputHandler = new InputHandler(this.boardController);
 
+
         spawnPiecesFromModel();
 
 
