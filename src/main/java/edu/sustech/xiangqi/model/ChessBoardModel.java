@@ -10,6 +10,7 @@ import com.almasb.fxgl.dsl.FXGL;
 import edu.sustech.xiangqi.XiangQiApp;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import edu.sustech.xiangqi.controller.boardController;
 
 
 public class ChessBoardModel implements Serializable{
@@ -202,7 +203,7 @@ public class ChessBoardModel implements Serializable{
            }
            // 3. 将军提示
            else if (isGeneraInCheck(isRedTurn)) {
-               System.out.println("将军!");
+
            }
        }
         moveHistory.push(command);

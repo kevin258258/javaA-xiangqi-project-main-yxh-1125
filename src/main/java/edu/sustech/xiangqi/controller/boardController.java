@@ -254,6 +254,9 @@ public class boardController {
             aiAutoStartTimer.expire(); aiAutoStartTimer = null;
         }
         if (model.undoMove()) {
+            hideGameOverBanner();
+
+
             refreshBoardView();
             getApp().getInputHandler().setLocked(false);
             // 悔棋后如果是 AI 回合，延迟触发 AI
@@ -505,7 +508,7 @@ public class boardController {
         String type = app.getSelectedPieceType();
 
         if ("Eraser".equals(type)) {
-            if (existing != null) { model.getPieces().remove(existing); app.spawnPiecesFromModel(); FXGL.play("按钮音效1.mp3"); }
+            if (existing != null) { model.getPieces().remove(existing); app.spawnPiecesFromModel(); FXGL.play("button.mp3"); }
             return;
         }
 
@@ -534,7 +537,7 @@ public class boardController {
 
             model.addPiece(newPiece);
             app.spawnPiecesFromModel();
-            FXGL.play("按钮音效1.mp3");
+            FXGL.play("button.mp3");
         } else if (existing != null) {
             model.getPieces().remove(existing);
             app.spawnPiecesFromModel();
@@ -597,6 +600,10 @@ public class boardController {
     private void playMoveAndEndGameAnimation(Entity e, Entity t, Point2D start, int r, int c) {
         Point2D target = XiangQiApp.getVisualPosition(r, c);
         e.setPosition(target);
+        if (model.isGeneraInCheck(model.isRedTurn())) {
+            showCheckMessage();
+
+        }
 
         animationBuilder().duration(Duration.seconds(0.2)).translate(e).from(start).to(target).buildAndPlay();
 
@@ -606,10 +613,7 @@ public class boardController {
             if (model.isGameOver()) showGameOverBanner();
             else {
 
-                if (model.isGeneraInCheck(model.isRedTurn())) {
-                    showCheckMessage();
 
-                }
             }
             updateTurnIndicator();
         }, Duration.seconds(0.25));
@@ -650,6 +654,21 @@ public class boardController {
         animationBuilder().duration(Duration.seconds(0.5)).scale(banner).from(new Point2D(0,0)).to(new Point2D(1,1)).buildAndPlay();
         updateTurnIndicator();
     }
+    private void hideGameOverBanner() {
+        // 获取 App 实例
+        XiangQiApp app = (XiangQiApp) FXGL.getApp();
+
+        // 1. 隐藏文字
+        if (app.getGameOverBanner() != null) {
+            app.getGameOverBanner().setVisible(false);
+        }
+
+        // 2. 隐藏黑色遮罩
+        if (app.getGameOverDimmingRect() != null) {
+            app.getGameOverDimmingRect().setVisible(false);
+        }
+    }
+
 
     private AbstractPiece createPiece(String type, int r, int c, boolean red) {
         switch (type) {
