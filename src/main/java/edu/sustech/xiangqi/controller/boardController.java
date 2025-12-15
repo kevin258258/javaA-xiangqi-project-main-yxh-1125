@@ -340,6 +340,15 @@ public class boardController {
 
             // 绘制终点高亮 (黄色圆形)
             drawMoveHighlight(targetRow, targetCol, Color.YELLOW, 0);
+
+            XiangQiApp app = getApp();
+            if (!isOnlineMode && !app.isCustomMode() && !app.isSettingUp()) {
+                int moveCount = model.getMoveHistoryStack().size();
+                if (moveCount > 0 && moveCount % 2 == 0) {
+                    new Thread(app::saveAutoGame).start();
+                }
+            }
+
         }
         return success;
     }

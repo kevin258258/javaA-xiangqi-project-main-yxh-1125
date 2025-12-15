@@ -114,6 +114,7 @@ public class XiangQiApp extends GameApplication {
     public int getAIDifficulty() {
         return aiLevel;
     }
+    public boolean isCustomMode() { return isCustomMode; }
 
     public void login(String username) { this.currentUser = username; this.isGuestMode = false; }
     public void loginAsGuest() { this.currentUser = "Guest"; this.isGuestMode = true; }
@@ -473,18 +474,44 @@ public class XiangQiApp extends GameApplication {
     }
 
     // --- 存档读档 ---
+    //自动保存逻辑
+    public void saveAutoGame() {
+        if (isGuestMode) return;
+        new File(SAVE_DIR).mkdirs();
+        // 文件名格式：Username_autosave.dat
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_DIR + currentUser + "_autosave.dat"))) {
+            oos.writeObject(model);
+            System.out.println("自动保存成功: 第 " + model.getMoveHistoryStack().size() + " 步");
+        } catch (Exception e) {
+            System.out.println("自动保存失败: " + e.getMessage());
+        }
+    }
+
     private void saveGameToSlot(int slot) {
         new File(SAVE_DIR).mkdirs();
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_DIR + currentUser + "_save_" + slot + ".dat"))) {
-            oos.writeObject(model); getDialogService().showMessageBox("保存成功");
+            oos.writeObject(model);
+            getDialogService().showMessageBox("保存成功");
         } catch (Exception e) {}
     }
     public void openSaveDialog() {
         if (isGuestMode) { getDialogService().showMessageBox("游客无法存档"); return; }
-        getDialogService().showChoiceBox("选择位置", List.of("存档 1", "存档 2", "存档 3"), s -> saveGameToSlot(Integer.parseInt(s.split(" ")[1])));
+
+        // 【修改】加入 "返 回" 选项
+        getDialogService().showChoiceBox("选择位置", List.of("存档 1", "存档 2", "存档 3", "返 回"), s -> {
+            if (s.equals("返 回")) return;
+            saveGameToSlot(Integer.parseInt(s.split(" ")[1]));
+        });
     }
 
     private void loadGameFromSlot(int slot) {
+        String fileName;
+        if (slot == -1) {
+            fileName = SAVE_DIR + currentUser + "_autosave.dat";
+        } else {
+            fileName = SAVE_DIR + currentUser + "_save_" + slot + ".dat";
+        }
+
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(SAVE_DIR + currentUser + "_save_" + slot + ".dat"))) {
             ChessBoardModel m = (ChessBoardModel) ois.readObject();
             m.rebuildAfterLoad();
@@ -502,12 +529,22 @@ public class XiangQiApp extends GameApplication {
     public void openLoadDialog() {
         if (isGuestMode) { getDialogService().showMessageBox("游客无法读档"); return; }
         List<String> slots = new ArrayList<>();
+        if (new File(SAVE_DIR + currentUser + "_autosave.dat").exists()) {
+            slots.add("自动存档");
+        }
+
         for (int i=1; i<=3; i++) if (new File(SAVE_DIR + currentUser + "_save_" + i + ".dat").exists()) slots.add("存档 " + i);
         if (slots.isEmpty()) {
             getDialogService().showMessageBox("无存档");
             return;
         }
-        getDialogService().showChoiceBox("读取位置", slots, s -> loadGameFromSlot(Integer.parseInt(s.split(" ")[1])));
+        getDialogService().showChoiceBox("读取位置", slots, s -> {
+            if (s.equals("自动存档")) {
+                loadGameFromSlot(-1); // -1 代表自动存档
+            } else {
+                loadGameFromSlot(Integer.parseInt(s.split(" ")[1]));
+            }
+        });
     }
 
     public boolean hasSaveFile() {
